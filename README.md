@@ -89,7 +89,26 @@ and handoffs.
 - Observed CloudWatch metrics and alarm state transitions
 - Received SNS alert notifications as expected
 
-# Screenshots
+# 📸 Architecture & Verification Screenshots
+
+### VPC Creation
+![VPC Created](screenshots/vpc-creation-success.png)
+
+### Public Subnet Configuration
+![Public Subnet](screenshots/vpc-public-subnet.png)
+
+### Security Group Inbound Rules
+![Security Group Rules](screenshots/security-group-inbound-rules.png)
+
+### EC2 Instance Running
+![EC2 Running](screenshots/ec2-instance-running.png)
+
+### SSH Access to EC2
+![SSH Session](screenshots/ec2-ssh-session.png)
+
+### CloudWatch CPU Alarm
+![CloudWatch Alarm](screenshots/cloudwatch-cpu-alarm.png)
+
 ---
 
 ## ✅ Result
