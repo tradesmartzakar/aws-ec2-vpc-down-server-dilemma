@@ -1,114 +1,136 @@
 # aws-ec2-vpc-down-server-dilemma
+
 Designing Reliable EC2 Access with Proper VPC Networking
-The Down Server Dilemma — DataForge Analytics (EC2 + VPC)
+
+---
+
+## The Down Server Dilemma — DataForge Analytics (EC2 + VPC)
 
 This project documents how I diagnosed and resolved repeated EC2 access failures
 caused by public IP changes, subnet routing issues, and restrictive network
-configurations. The goal was not just to restore access, but to design the
-infrastructure so future engineers would not need to re-debug the same problem.
+configurations inside an AWS VPC.
 
-🚀 Project Overview
+Rather than simply restoring access, the focus was on designing the environment
+for **reliability, security, and repeatability**.
 
-DataForge Analytics experienced intermittent downtime when an EC2-hosted analytics
-dashboard became unreachable after instance restarts. Each restart introduced a
-new public IP, breaking client access and administrative connectivity.
+---
 
-This project focuses on network design, security boundaries, and observability
-rather than simply launching compute.
+## 🚀 Project Overview
 
-🛠️ Technologies Used
+A DataForge Analytics EC2 instance became unreachable after restarts due to
+misaligned subnet routing, public IP behavior, and SSH access restrictions.
 
-AWS EC2
+This project demonstrates how to properly design a **public subnet architecture**
+so compute resources remain accessible, observable, and secure across restarts
+and handoffs.
 
-Amazon VPC
+---
 
-Public & Private Subnets
+## 🛠️ Technologies Used
 
-Route Tables
+- AWS EC2
+- Amazon VPC
+- Public & Private Subnets
+- Route Tables
+- Internet Gateway
+- Security Groups
+- SSH (Key Pair Authentication)
+- Amazon CloudWatch
+- Amazon SNS
 
-Internet Gateway
+---
 
-Security Groups
+## ⚙️ Investigation & Design Steps
 
-SSH (Key Pair Authentication)
+1. Reviewed EC2 instance state and health checks
+2. Attempted browser and SSH access using public IPv4 and DNS
+3. Identified intermittent access failures after instance restarts
+4. Audited subnet configuration and route table associations
+5. Verified Internet Gateway attachment to the VPC
+6. Confirmed `0.0.0.0/0` routing from public subnets to the IGW
+7. Enabled auto-assign public IPv4 at the subnet level
+8. Restricted SSH (port 22) access to **My IP** only
+9. Validated key pair authentication using SSH
+10. Added observability and alerting for system health
 
-AWS CloudWatch
+---
 
-Amazon SNS
+## 🧩 Root Cause
 
-⚙️ Investigation & Design Process
+- EC2 instance launched into a subnet not fully configured for public access
+- Public IPv4 auto-assignment disabled at the subnet level
+- Route table associations inconsistent across subnets
+- SSH access blocked due to IP/region mismatch
+- No monitoring in place to detect system stress or risk
 
-Verified EC2 instance health and state
+---
 
-Attempted browser and SSH access using public IPv4 and DNS
+## 🛠️ Solution
 
-Reviewed subnet configuration and route table associations
+- Designed a proper **public subnet** with:
+  - Internet Gateway attached to the VPC
+  - Route table with `0.0.0.0/0 → IGW`
+  - Explicit subnet-to-route-table association
+  - Public IPv4 auto-assignment enabled
+- Secured administrative access:
+  - SSH allowed only from **My IP**
+  - Key pair authentication enforced
+- Added observability:
+  - CloudWatch CPUUtilization alarm (>80% for 5 minutes)
+  - SNS email notifications for proactive alerting
 
-Identified missing or incorrect routes to the Internet Gateway
+---
 
-Validated public IPv4 auto-assignment at the subnet level
+## 🧪 Verification
 
-Audited Security Group inbound rules for SSH scope
+- Successfully connected to the instance via SSH using a `.pem` key
+- Verified public access using IPv4 and public DNS
+- Confirmed outbound internet access from the EC2 instance
+- Observed CloudWatch metrics and alarm state transitions
+- Received SNS alert notifications as expected
 
-Confirmed region and IP alignment for administrative access
+---
 
-Reviewed lack of monitoring and alerting for system stress
+## ✅ Result
 
-🧩 Root Cause
+- Stable and repeatable EC2 access restored
+- Secure network boundaries enforced
+- Monitoring and alerting enabled
+- Infrastructure documented for future engineers
+- Cost: **$0 (AWS Free Tier)**
 
-EC2 instance was deployed into a subnet that was not fully configured for
-public access
+---
 
-Public IPv4 assignment was disabled at the subnet level
+## 📚 Key Learnings
 
-Route table associations were inconsistent
+- How subnet route tables directly impact EC2 accessibility
+- Why public IP behavior matters for uptime
+- How overly permissive SSH rules increase attack surface
+- Why observability is essential for production systems
+- How to design infrastructure that survives restarts
 
-SSH access was restricted due to IP/region mismatch
+---
 
-No observability existed to detect or alert on performance risk
+## 💬 Reflection
 
-🛠️ Solution Implementation
+A consultant doesn’t just launch infrastructure — they design for uptime,
+scale, and repeatability.
 
-Designed a proper public subnet architecture:
+**Reflection Questions:**
+1. Why does assigning a public IP make an EC2 instance reachable by clients?
+2. What could happen if SSH (port 22) is opened to “Anywhere” instead of “My IP”?
+3. How would you explain to a business owner why adding a Load Balancer or Elastic
+   IP improves reliability?
 
-Internet Gateway attached to the VPC
+---
 
-Route table with 0.0.0.0/0 → IGW
+## 🔜 Next Steps
 
-Explicit subnet-to-route-table association
+- Introduce Elastic IP for persistent addressing
+- Add Application Load Balancer
+- Implement Auto Scaling
+- Convert infrastructure to Terraform
+- Expand monitoring to disk and memory metrics
 
-Enabled auto-assign public IPv4
 
-Restricted SSH access using least-privilege Security Group rules
 
-SSH allowed only from My IP
-
-Validated secure access using an EC2 key pair
-
-Added CloudWatch observability:
-
-CPUUtilization alarm (>80% for 5 minutes)
-
-SNS email notifications for proactive alerting
-
-🧪 Validation
-
-Successfully connected to the instance via SSH using a private key
-
-Verified public accessibility through IPv4 and public DNS
-
-Confirmed outbound traffic routing through Internet Gateway
-
-Observed CloudWatch metrics and alarm state changes
-
-Received SNS alert notifications as expected
-
-✅ Result
-
-Reliable and repeatable public access restored
-
-Secure administrative access enforced
-
-Proactive monitoring enabled
-
-Infrastructure behavior documented for future engineers
