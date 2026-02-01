@@ -89,6 +89,16 @@ and handoffs.
 - Observed CloudWatch metrics and alarm state transitions
 - Received SNS alert notifications as expected
 
+# aws-ec2-vpc-down-server-dilemma/
+├── README.md
+├── screenshots/
+│   ├── 01-ec2-instance-overview.png
+│   ├── 02-security-group-inbound-rules.png
+│   ├── 03-subnet-route-table.png
+│   ├── 04-ssh-successful-connection.png
+│   ├── 05-cloudwatch-cpu-alarm.png
+│   └── 06-vpc-resource-map.png
+
 ---
 
 ## ✅ Result
